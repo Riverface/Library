@@ -14,17 +14,23 @@ namespace Library.Controllers
     public class AuthorsController : Controller
     {
         private readonly LibraryContext _db;
-
-        public AuthorsController(LibraryContext db)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public AuthorsController(UserManager<ApplicationUser> userManager, LibraryContext db)
         {
+            _userManager = userManager;
             _db = db;
         }
 
         //Index
-        [HttpGet("/")]
-        public ActionResult Index()
+
+        public async Task<ActionResult> Index()
         {
-            return View();
+            var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUser = await _userManager.FindByIdAsync(userId);
+            var userAuthors = _db.Authors.Where(entry => entry.User.Id == currentUser.Id);
+            ViewBag.Books = _db.Books;
+            ViewBag.AllAuthors = _db.Authors.ToList();
+            return View(userAuthors);
         }
         //C
         public ActionResult Create()
@@ -32,9 +38,13 @@ namespace Library.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult Create(Author author)
+        public async Task<ActionResult> Create(Author author)
         {
+            var userId=this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUser= await _userManager.FindByIdAsync(userId);
+            author.User = currentUser;
             _db.Authors.Add(author);
+            _db.SaveChanges();
             return RedirectToAction("Index");
         }
         //R
@@ -52,6 +62,7 @@ namespace Library.Controllers
             var thisAuthor = _db.Authors.FirstOrDefault(author => author.AuthorId == id);
             return View(thisAuthor);
         }
+        
         [HttpPost]
         public ActionResult Edit(Author author)
         {

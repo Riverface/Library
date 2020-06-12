@@ -7,8 +7,10 @@
 <h4>Add a new author</h4>
 @using (Html.BeginForm())
 {
-    @Html.LabelFor(model => model.Name)
-    @Html.TextBoxFor(model => model.Name)
+    @Html.LabelFor(model => model.FirstName)
+    @Html.EditorFor(model => model.FirstName)
+    @Html.LabelFor(model => model.LastName)
+    @Html.EditorFor(model => model.LastName)
     <input type="submit" value="Add new author" />
 }
 <p>@Html.ActionLink("Show all categories", "Index")</p>

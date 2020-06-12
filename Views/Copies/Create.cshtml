@@ -2,12 +2,12 @@
   Layout = "_Layout";
 }
 
-@model Library.Models.Book
+@model Library.Models.Copy
 
-<h4>Add a new author</h4>
+<h4>Add a new Copy of a book</h4>
 @using (Html.BeginForm())
 {
-    @Html.LabelFor(model => model.Title)
-    @Html.TextBoxFor(model => model.Title)
-    <input type="submit" value="Add new author" />
+    @Html.Label("Select Book")
+    @Html.DropDownList("BookId")
+    <input type="submit" value="Add new copy" />
 }

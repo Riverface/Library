@@ -2,28 +2,44 @@
   Layout = "_Layout";
 }
 
-@model Library.Models.Book
+@model Library.Models.Copy
 
 <h2>Author Details</h2>
 <hr />
-<h3>@Html.DisplayNameFor(model => model.Title): @Html.DisplayFor(model => model.Title)</h3>
+<script>
+  $(document).ready(function(){
+    $("#panel1").hide();
+    $("#checkout").click(function(){
+        $("#panel1").show();
+    });
+  });
+</script>
 
-@if(@Model.Books.Count == 0)
+<h3>Copy ID:@Model.CopyId</h3>
+<h3>Book Title: @Model.Book.Title</h3>
+<h3>Checked Out? </h3>
+
+@if(Model.CheckedOut)
 {
-  <p>This author does not contain any books</p>
+  <li>Checked out</li>
 }
 else
 {
-  <h4>Books the author contains:</h4>
-  <ul>
-  @foreach(var join in Model.Books)
+  <li>Not checked out</li>
+}
+
+@using (Html.BeginForm("CheckOut", "Copies", @Model.CopyId))
+{  
+  @Html.HiddenFor(model => model.CopyId)
+  @Html.HiddenFor(model => model.BookId)
+  @Html.HiddenFor(model => model.CheckedOut)
+  @if(User.Identity.IsAuthenticated)
   {
-    <li>@join.Book.Title</li>
+    <input type="button" id="checkout" value="Check this book out" />
+    <p id="panel1"><input type="submit" value="CheckOut" /></p>
   }
-  @if()
-  </ul>
 }
 
 <p>@Html.ActionLink("Back to Authors List", "Index")</p>
-<p>@Html.ActionLink("Edit Author", "Edit", new { id = Model.BookId })</p>
-<p>@Html.ActionLink("Delete Author", "Delete", new { id = Model.BookId })</p>
+<p>@Html.ActionLink("Edit Copy", "Edit", new { id = Model.CopyId })</p>
+<p>@Html.ActionLink("Delete Copy", "Delete", new { id = Model.CopyId })</p>

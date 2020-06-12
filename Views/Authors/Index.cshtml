@@ -1,3 +1,21 @@
 @{
   Layout = "_Layout";
 }
+@using Library.Models;
+@model IEnumerable<Library.Models.Author>;
+
+@if(Model.Any())
+{
+  foreach (Author entry in Model)
+  {
+    <li>@Html.ActionLink($"{entry.Name}", "Details", new { id = entry.AuthorId })</li>
+    @if(entry.Books.Any()){
+      foreach (var join in entry.Books)
+      {
+        <li>@Html.ActionLink($"{join.Book.Title}", "Details", new { id = join.Book.BookId })</li>
+      }
+    }
+  }
+}
+
+<p>@Html.ActionLink("Create", "Create", "Authors")</p>

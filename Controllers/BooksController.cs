@@ -22,10 +22,12 @@ namespace Library.Controllers
             _db = db;
         }
 
-        [HttpGet("/")]
+
         public ActionResult Index()
         {
-            return View();
+            var model = _db.Books.ToList();
+            ViewBag.Copies = _db.Copies;
+            return View(model);
         }
 
 
@@ -39,10 +41,11 @@ namespace Library.Controllers
         [HttpPost]
         public ActionResult Create(Book book, int AuthorId)
         {
-
+            _db.Books.Add(book);
             if (AuthorId != 0)
             {
                 _db.AuthorBooks.Add(new AuthorBook() { AuthorId = AuthorId, BookId = book.BookId });
+                        
             }
             _db.SaveChanges();
             return RedirectToAction("Index");

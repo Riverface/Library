@@ -10,11 +10,13 @@ namespace Library.Models
         public string FirstName {get; set;}
         public string LastName {get; set;}
         public virtual ICollection<AuthorBook> Books{get; set;}
-        public Author(){
+        public virtual ApplicationUser User { get; set; }
+        [NotMapped]
+        public string Name =>$"{FirstName} {LastName}";
+        
+        public Author()
+        {
             this.Books = new HashSet<AuthorBook>();
         }
-        [NotMapped]
-
-         public string Name =>$"{FirstName} {LastName}";
     }
 }

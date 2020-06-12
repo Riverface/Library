@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
 using Library.Models;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
 
 namespace Library.Controllers
 {
@@ -23,76 +23,70 @@ namespace Library.Controllers
             _userManager = userManager;
             _db = db;
         }
-        
+
         public async Task<ActionResult> Index()
         {
             var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var currentUser = await _userManager.FindByIdAsync(userId);
-            var userCopies = _db.Copies.Where(entry => entry.User.Id == currentUser.Id);
+            var userCopies = _db.Copies
+                .Where(copy => copy.User.Id == currentUser.Id)
+                .Include(copy => copy.Book);
             return View(userCopies);
         }
 
         public ActionResult Create()
         {
-            ViewBag.CategoryId = new SelectList(_db.Copies, "CategoryId", "Name");
+            ViewBag.BookId = new SelectList(_db.Books, "BookId", "Title");
             return View();
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create(Copy copy, int CategoryId)
+        public async Task<ActionResult> Create(Copy copy, int BookId)
         {
-          var userId=this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-          var currentUser = await _userManager.FindByIdAsync(userId);
-          copy.User = currentUser;
+            var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUser = await _userManager.FindByIdAsync(userId);
+            copy.User = currentUser;
+
             _db.Copies.Add(copy);
             _db.SaveChanges();
             return RedirectToAction("Index");
+
         }
 
         public ActionResult Details(int id)
         {
-            var thisCopy = _db.Copies
-                .Include(copy => copy.Copies)
-                .ThenInclude(join => join.Category)
-                .FirstOrDefault(copy => copy.CopyId == id);
+
+            Copy thisCopy;
+                thisCopy = _db.Copies.Include(copy => copy.Book)
+                    .Where(copy => copy.CopyId == id)
+                    .FirstOrDefault();
+            
             return View(thisCopy);
         }
 
         public ActionResult Edit(int id)
         {
-            var thisCopy = _db.Copies.FirstOrDefault(copies => copies.CopyId == id);
-            ViewBag.CategoryId = new SelectList(_db.Copies, "CategoryId", "Name");
+            Copy thisCopy = _db.Copies.Include(copy => copy.Book)
+                .Where(copy => copy.CopyId == id)
+                .FirstOrDefault();
             return View(thisCopy);
         }
 
         [HttpPost]
-        public ActionResult Edit(Copy copy, int CategoryId)
+        public ActionResult Edit(Copy copy)
         {
-            if (CategoryId != 0)
-            {
-                _db.CategoryCopy.Add(new CategoryCopy() { CategoryId = CategoryId, CopyId = copy.CopyId });
-            }
             _db.Entry(copy).State = EntityState.Modified;
             _db.SaveChanges();
             return RedirectToAction("Index");
         }
 
-        public ActionResult AddCategory(int id)
+        [HttpPost, ActionName("CheckOut")]
+        public ActionResult CheckOut(Copy copy)
         {
-            var thisCopy = _db.Copies.FirstOrDefault(copies => copies.CopyId == id);
-            ViewBag.CategoryId = new SelectList(_db.Copies, "CategoryId", "Name");
-            return View(thisCopy);
-        }
-
-        [HttpPost]
-        public ActionResult AddCategory(Copy copy, int CategoryId)
-        {
-            if (CategoryId != 0)
-            {
-                _db.CategoryCopy.Add(new CategoryCopy() { CategoryId = CategoryId, CopyId = copy.CopyId });
-            }
+            copy.CheckedOut = !copy.CheckedOut;
+            _db.Entry(copy).State = EntityState.Modified;
             _db.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", "Copies", new {id = copy.CopyId});
         }
 
         public ActionResult Delete(int id)
@@ -110,13 +104,5 @@ namespace Library.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        public ActionResult DeleteCategory(int joinId)
-        {
-            var joinEntry = _db.CategoryCopy.FirstOrDefault(entry => entry.CategoryCopyId == joinId);
-            _db.CategoryCopy.Remove(joinEntry);
-            _db.SaveChanges();
-            return RedirectToAction("Index");
-        }
     }
 }

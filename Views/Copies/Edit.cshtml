@@ -2,22 +2,16 @@
   Layout = "_Layout";
 }
 
-@model Library.Models.Book
+@model Library.Models.Copy
 
 <h2>Edit</h2>
 
-<h4>Edit this task: @Html.DisplayFor(model => model.Title)</h4>
+<h4>Edit this copy: @Html.DisplayFor(model => model.Book.Title)</h4>
 
 @using (Html.BeginForm())
 {
+    @Html.HiddenFor(model => model.CopyId)
     @Html.HiddenFor(model => model.BookId)
-
-    @Html.LabelFor(model => model.Title)
-    @Html.EditorFor(model => model.Title)
-
-    @Html.Label("Select author")
-    @Html.DropDownList("AuthorId")
-
     <input type="submit" value="Save" />
 }
 
